@@ -6,7 +6,7 @@ import roleRouter from "../modules/Role/roleRoute";
 import teamRouter from "../modules/Team/teamRoute";
 import leagueRouter from "../modules/Team/teamRoute";
 import scoreRouter from "../modules/Score/scoreRoute";
-import connectDB from "../helper/dbconnect"
+import mongoose from 'mongoose';
 
 //Middleware
 // import { authToken } from './middleware/authToken';
@@ -41,12 +41,13 @@ app.use("/api/leagues",leagueRouter);
 app.use("/api/scores",scoreRouter);
 
 
-try{
-  connectDB();
+const server = mongoose.connect("mongodb+srv://khoidev311:8heCdSJRCFliwvfk@server1.a2yvgjo.mongodb.net/").then(()=> {
+  console.log("Connected to database!");
   app.listen(port, () => {
     return console.log(`Express is listening at http://localhost:${port}`);
   });
-}
-catch (err){
+}).catch((err)=> {
   console.log(err.stack);
-}
+})
+
+export default server;
