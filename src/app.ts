@@ -41,7 +41,7 @@ app.use("/api/leagues",leagueRouter);
 app.use("/api/scores",scoreRouter);
 
 
-const server = mongoose.connect("mongodb+srv://khoidev311:8heCdSJRCFliwvfk@server1.a2yvgjo.mongodb.net/").then(()=> {
+mongoose.connect("mongodb+srv://khoidev311:8heCdSJRCFliwvfk@server1.a2yvgjo.mongodb.net/").then(()=> {
   console.log("Connected to database!");
   app.listen(port, () => {
     return console.log(`Express is listening at http://localhost:${port}`);
@@ -50,4 +50,4 @@ const server = mongoose.connect("mongodb+srv://khoidev311:8heCdSJRCFliwvfk@serve
   console.log(err.stack);
 })
 
-export default server;
+export default app;
