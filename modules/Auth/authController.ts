@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import UserModel from "../User/userModel";
+import { Request, Response } from "express";
 
-const authRegister = async (req, res) => {
+const authRegister = async (req: Request, res: Response) => {
     const { username } = req.body;
     const checkUsername = await UserModel.findOne({ username });
     if (checkUsername) {
@@ -15,13 +16,13 @@ const authRegister = async (req, res) => {
           password: hassedPasword,
         });
         res.status(200).json(users);
-      } catch (error) {
+      } catch (error: any) {
         res.status(500).json({ message: error.message });
       }
     }
 };
 
-const authLogin = async (req, res) => {
+const authLogin = async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   // Check for existing user
@@ -30,9 +31,9 @@ const authLogin = async (req, res) => {
       return res.status(400).json({ msg: 'User does not exist' });
   }
   // Validate password
-  const isAcceptPassword = bcrypt.compare(password, user.password);
+  const isAcceptPassword = await bcrypt.compare(password, user.password);
   if (isAcceptPassword) {
-    const accessToken = jwt.sign({username: username}, process.env.ACCESS_TOKEN_SECRET,{
+    const accessToken = jwt.sign({username: username}, process.env.ACCESS_TOKEN_SECRET || "",{
       expiresIn:"1000s",
     });
     return res.status(200).json({

@@ -1,38 +1,39 @@
 
+import { Request, Response } from "express";
 import { queryBuilder } from "../../helper/commonHelper";
 import UserModel from "./userModel";
 
 
-const getUsers = async (req, res) => {
+const getUsers = async (req: Request, res: Response) => {
   try {
     const { filter , sort } = queryBuilder(req);
     const users = await UserModel.find({...filter}).sort(sort).populate({path:"role",model:"Role"});
     res.status(200).json(users);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const getUserById = async (req, res) => {
+const getUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await UserModel.findById(id);
     res.status(200).json(user);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const createUser = async (req, res) => {
+const createUser = async (req: Request, res: Response) => {
     try {
       const user = await UserModel.create(req.body);
       res.status(200).json(user);
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -44,12 +45,12 @@ const updateUser = async (req, res) => {
 
     const updatedUser = await UserModel.findById(id);
     res.status(200).json(updatedUser);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const deleteUser = async (req, res) => {
+const deleteUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -60,7 +61,7 @@ const deleteUser = async (req, res) => {
     }
 
     res.status(200).json({ message: "User deleted successfully" });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };

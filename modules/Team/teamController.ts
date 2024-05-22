@@ -1,35 +1,36 @@
+import { Request, Response } from "express";
 import TeamModel from "./teamModel";
 
 
-const getTeams = async (req, res) => {
+const getTeams = async (req: Request, res: Response) => {
   try {
     const roles = await TeamModel.find({});
     res.status(200).json(roles);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const getTeamById = async (req, res) => {
+const getTeamById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const role = await TeamModel.findById(id);
     res.status(200).json(role);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const createTeam = async (req, res) => {
+const createTeam = async (req: Request, res: Response) => {
     try {
       const role = await TeamModel.create(req.body);
       res.status(200).json(role);
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
 };
 
-const updateTeam = async (req, res) => {
+const updateTeam = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -41,12 +42,12 @@ const updateTeam = async (req, res) => {
 
     const updatedTeam = await TeamModel.findById(id);
     res.status(200).json(updatedTeam);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const deleteTeam = async (req, res) => {
+const deleteTeam = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -57,7 +58,7 @@ const deleteTeam = async (req, res) => {
     }
 
     res.status(200).json({ message: "Team deleted successfully" });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };

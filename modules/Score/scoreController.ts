@@ -1,35 +1,36 @@
+import { Request, Response } from "express";
 import ScoreModel from "./scoreModel";
 
 
-const getScores = async (req, res) => {
+const getScores = async (req: Request, res: Response) => {
   try {
     const roles = await ScoreModel.find({}).populate({path:"host_team",model:"Team"}).populate({path:"guest_team",model:"Team"});
     res.status(200).json(roles);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const getScoreById = async (req, res) => {
+const getScoreById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const role = await ScoreModel.findById(id);
     res.status(200).json(role);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const createScore = async (req, res) => {
+const createScore = async (req: Request, res: Response) => {
     try {
       const role = await ScoreModel.create(req.body);
       res.status(200).json(role);
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
 };
 
-const updateScore = async (req, res) => {
+const updateScore = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -41,12 +42,12 @@ const updateScore = async (req, res) => {
 
     const updatedScore = await ScoreModel.findById(id);
     res.status(200).json(updatedScore);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const deleteScore = async (req, res) => {
+const deleteScore = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -57,7 +58,7 @@ const deleteScore = async (req, res) => {
     }
 
     res.status(200).json({ message: "Score deleted successfully" });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
