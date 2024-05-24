@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import dotenv from "dotenv";
+import cors from 'cors';
 import userRouter from "../modules/User/userRoute";
 import authRouter from "../modules/Auth/authRoute";
 import roleRouter from "../modules/Role/roleRoute";
@@ -39,6 +40,17 @@ app.use("/api/leagues",leagueRouter);
 
 //scores
 app.use("/api/scores",scoreRouter);
+
+const options = [
+  cors({
+    origin: '*',
+    methods: '*',
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+];
+
+app.use(options);
 
 
 mongoose.connect("mongodb+srv://khoidev311:8heCdSJRCFliwvfk@server1.a2yvgjo.mongodb.net/").then(()=> {
