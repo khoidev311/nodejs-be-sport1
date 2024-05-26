@@ -8,7 +8,7 @@
       {
         "source": "/(.*)",
         "headers": [
-          { "key": "Access-Control-Allow-Origin", "value": "*" }
+          { "key": "Access-Control-Allow-Origin", "value": "http://dev.sport1.com:3014/" }
         ]
       },
       {
