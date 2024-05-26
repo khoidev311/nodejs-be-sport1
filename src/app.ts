@@ -16,6 +16,13 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(cors({
+  origin: '*',
+  methods: '*',
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
+
 app.use(express.json());
 
 
@@ -41,12 +48,7 @@ app.use("/api/leagues",leagueRouter);
 //scores
 app.use("/api/scores",scoreRouter);
 
-app.use(cors({
-  origin: '*',
-  methods: '*',
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-}));
+
 
 
 mongoose.connect("mongodb+srv://khoidev311:8heCdSJRCFliwvfk@server1.a2yvgjo.mongodb.net/").then(()=> {
