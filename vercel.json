@@ -4,9 +4,9 @@
     "source": "/(.*)", 
     "destination": "/api"
     }],
-    "headers": [
+  "headers": [
       {
-        "source": "/api/(.*)",
+        "source": "/(.*)",
         "headers": [
           { "key": "Access-Control-Allow-Origin", "value": "*" },
           { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
