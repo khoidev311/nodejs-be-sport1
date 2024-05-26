@@ -1,11 +1,21 @@
 import { Request, Response } from "express";
 import TeamModel from "./teamModel";
+import { size } from "lodash";
+import { queryBuilder } from "../../helper/commonHelper";
 
 
 const getTeams = async (req: Request, res: Response) => {
   try {
-    const roles = await TeamModel.find({});
-    res.status(200).json(roles);
+    const { filter , sort } = queryBuilder(req);
+    const teams = await TeamModel.find({...filter}).sort(sort);
+    res.status(200).json({
+      data: {
+        data: teams,
+      },
+      meta: {
+        total: size(teams),
+      }
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

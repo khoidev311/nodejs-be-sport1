@@ -12,6 +12,8 @@ const getUsers = async (req: Request, res: Response) => {
     res.status(200).json({
       data: {
         data: users,
+      },
+      meta: {
         total: size(users),
       }
     });

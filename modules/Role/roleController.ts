@@ -1,11 +1,21 @@
 import { Request, Response } from "express";
 import RoleModel from "./roleModel";
+import { size } from "lodash";
+import { queryBuilder } from "../../helper/commonHelper";
 
 
 const getRoles = async (req: Request, res: Response) => {
   try {
-    const roles = await RoleModel.find({});
-    res.status(200).json(roles);
+    const { filter , sort } = queryBuilder(req);
+    const roles = await RoleModel.find({...filter}).sort(sort);
+    res.status(200).json({
+      data: {
+        data: roles,
+      },
+      meta: {
+        total: size(roles),
+      }
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
