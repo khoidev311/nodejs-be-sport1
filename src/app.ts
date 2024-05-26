@@ -17,7 +17,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: 'http://dev.sport1.com:3014',
+  origin: '*',
   methods: '*',
 }));
 

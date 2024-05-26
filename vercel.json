@@ -4,12 +4,10 @@
     "source": "/(.*)", 
     "destination": "/api"
     }],
-  "headers": [
-      {
-        "source": "/(.*)",
-        "headers": [
+  "headers": 
+   [
           { "key": "Access-Control-Allow-Credentials", "value": "true" },
-          { "key": "Access-Control-Allow-Origin", "value": "http://dev.sport1.com:3014" },
+          { "key": "Access-Control-Allow-Origin", "value": "*" },
           {
             "key": "Access-Control-Allow-Methods",
             "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
@@ -19,6 +17,4 @@
             "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
           }
         ]
-      }
-    ]
 }
