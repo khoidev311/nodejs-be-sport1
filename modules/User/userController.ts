@@ -12,10 +12,10 @@ const getUsers = async (req: Request, res: Response) => {
     res.status(200).json({
       data: {
         data: users,
+        meta: {
+          total: size(users),
+        }
       },
-      meta: {
-        total: size(users),
-      }
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

@@ -11,10 +11,10 @@ const getRoles = async (req: Request, res: Response) => {
     res.status(200).json({
       data: {
         data: roles,
+        meta: {
+          total: size(roles),
+        }
       },
-      meta: {
-        total: size(roles),
-      }
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
