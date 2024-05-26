@@ -9,12 +9,10 @@ const getTeams = async (req: Request, res: Response) => {
     const { filter , sort } = queryBuilder(req);
     const teams = await TeamModel.find({...filter}).sort(sort);
     res.status(200).json({
-      data: {
         data: teams,
         meta: {
           total: size(teams),
-        }
-      },
+        } 
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

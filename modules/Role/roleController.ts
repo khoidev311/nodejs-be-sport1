@@ -9,12 +9,10 @@ const getRoles = async (req: Request, res: Response) => {
     const { filter , sort } = queryBuilder(req);
     const roles = await RoleModel.find({...filter}).sort(sort);
     res.status(200).json({
-      data: {
         data: roles,
         meta: {
           total: size(roles),
         }
-      },
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

@@ -10,12 +10,10 @@ const getUsers = async (req: Request, res: Response) => {
     const { filter , sort } = queryBuilder(req);
     const users = await UserModel.find({...filter}).sort(sort).populate({path:"role",model:"Role"});
     res.status(200).json({
-      data: {
         data: users,
         meta: {
           total: size(users),
         }
-      },
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

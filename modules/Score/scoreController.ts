@@ -9,12 +9,10 @@ const getScores = async (req: Request, res: Response) => {
     const { filter , sort } = queryBuilder(req);
     const scores = await ScoreModel.find({...filter}).sort(sort).populate({path:"host_team",model:"Team"}).populate({path:"guest_team",model:"Team"});
     res.status(200).json({
-      data: {
         data: scores,
         meta: {
           total: size(scores),
         }
-      },
     });;
   } catch (error: any) {
     res.status(500).json({ message: error.message });
