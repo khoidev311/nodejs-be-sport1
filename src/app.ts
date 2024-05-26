@@ -20,6 +20,11 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
+app.use(cors({
+  origin: '*',
+  methods: '*',
+}));
+
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');
@@ -43,10 +48,7 @@ app.use("/api/leagues",leagueRouter);
 //scores
 app.use("/api/scores",scoreRouter);
 
-app.use(cors({
-  origin: '*',
-  methods: '*',
-}));
+
 
 
 
