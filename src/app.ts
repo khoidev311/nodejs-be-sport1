@@ -5,7 +5,7 @@ import userRouter from "../modules/User/userRoute";
 import authRouter from "../modules/Auth/authRoute";
 import roleRouter from "../modules/Role/roleRoute";
 import teamRouter from "../modules/Team/teamRoute";
-import leagueRouter from "../modules/Team/teamRoute";
+import leagueRouter from "../modules/League/leagueRoute";
 import scoreRouter from "../modules/Score/scoreRoute";
 import mongoose from 'mongoose';
 

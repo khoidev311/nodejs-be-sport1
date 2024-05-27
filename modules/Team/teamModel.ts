@@ -10,7 +10,11 @@ const teamSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-      }
+      },
+    league:{
+        type: Schema.ObjectId,
+        ref: 'League',
+      },
 })
 
 const TeamModel = model("Team",teamSchema);

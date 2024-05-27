@@ -7,7 +7,7 @@ import { queryBuilder } from "../../helper/commonHelper";
 const getTeams = async (req: Request, res: Response) => {
   try {
     const { filter , sort } = queryBuilder(req);
-    const teams = await TeamModel.find({...filter}).sort(sort);
+    const teams = await TeamModel.find({...filter}).sort(sort).populate({path:"league",model:"League"});
     res.status(200).json({
         data: teams,
         meta: {
