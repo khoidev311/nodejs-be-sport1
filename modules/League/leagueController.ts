@@ -9,9 +9,7 @@ const getLeagues = async (req: Request, res: Response) => {
     const { filter , sort } = queryBuilder(req);
     const leagues = await LeagueModel.find({...filter}).sort(sort);
     res.status(200).json({
-      data: {
-        data: leagues,
-      },
+      data: leagues,
       meta: {
         total: size(leagues),
       }
