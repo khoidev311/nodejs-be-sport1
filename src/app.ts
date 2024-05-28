@@ -7,6 +7,8 @@ import roleRouter from "../modules/Role/roleRoute";
 import teamRouter from "../modules/Team/teamRoute";
 import leagueRouter from "../modules/League/leagueRoute";
 import scoreRouter from "../modules/Score/scoreRoute";
+import fixtureRouter from "../modules/Fixture/fixtureRoute";
+import rankRouter from "../modules/Rank/rankRoute";
 import mongoose from 'mongoose';
 
 //Middleware
@@ -44,6 +46,12 @@ app.use("/api/leagues",leagueRouter);
 
 //scores
 app.use("/api/scores",scoreRouter);
+
+//fixtures
+app.use("/api/fixtures",fixtureRouter);
+
+//ranks
+app.use("/api/ranks",rankRouter);
 
 
 

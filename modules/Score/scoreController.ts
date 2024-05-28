@@ -1,4 +1,3 @@
-import { model } from 'mongoose';
 import { Request, Response } from "express";
 import ScoreModel from "./scoreModel";
 import { size } from "lodash";
