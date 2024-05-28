@@ -6,6 +6,7 @@ const rankSchema = new Schema({
     draw: { type: Number, default:  0},
     efficiency: { type: Number, default:  0},
     goal: { type: Number, default:  0},
+    rank: { type: Number, default:  0},
     point: { type: Number, default:  0},
     history_match: {type: Array<String>, default: ["W", "W", "L", "D", "D"]},
     total_match: { type: Number, default:  0},
