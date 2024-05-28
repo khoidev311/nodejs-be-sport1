@@ -31,9 +31,8 @@ const getRankById = async (req: Request, res: Response) => {
 
 const getRankByLeagueId = async (req: Request, res: Response) => {
   try {
-    const { filter , sort } = queryBuilder(req);
     const { id } = req.params;
-    let scores = await RankModel.find({...filter}).sort(sort).populate({path:"team",model:"Team"}).populate({path:"league", model:"League", match: {_id:id}});
+    let scores = await RankModel.find({}).sort("rank").populate({path:"team",model:"Team"}).populate({path:"league", model:"League", match: {_id:id}});
     scores = scores.filter((item)=> item.league !== null);
     res.status(200).json({
         data: scores,
