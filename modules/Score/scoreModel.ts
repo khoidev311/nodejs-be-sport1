@@ -10,6 +10,10 @@ const scoreSchema = new Schema({
         ref: 'Team',
       },
     score:  {type: String, required: true },
+    league: {
+      type: Schema.ObjectId,
+      ref: 'League',
+    },
 })
 
 const ScoreModel = model("Score",scoreSchema);
