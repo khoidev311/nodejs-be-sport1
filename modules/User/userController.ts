@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import { queryBuilder } from "../../helper/commonHelper";
 import UserModel from "./userModel";
 import { size } from "lodash";
+import bcrypt from "bcrypt";
+import RoleModel from "../Role/roleModel";
 
 
 const getUsers = async (req: Request, res: Response) => {
@@ -32,7 +34,13 @@ const getUserById = async (req: Request, res: Response) => {
 
 const createUser = async (req: Request, res: Response) => {
     try {
-      const user = await UserModel.create(req.body);
+      const hassedPasword = await bcrypt.hash(req.body.password,10);
+      const userRole = await RoleModel.findOne({slug:"user"});
+      const user = await UserModel.create({
+        ...req.body,
+        role: userRole?._id,
+        password: hassedPasword
+      });
       res.status(200).json(user);
     } catch (error: any) {
       res.status(500).json({ message: error.message });

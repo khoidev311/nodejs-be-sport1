@@ -9,6 +9,7 @@ import leagueRouter from "../modules/League/leagueRoute";
 import scoreRouter from "../modules/Score/scoreRoute";
 import fixtureRouter from "../modules/Fixture/fixtureRoute";
 import rankRouter from "../modules/Rank/rankRoute";
+import configRouter from "../modules/Config/configRoute";
 import mongoose from 'mongoose';
 
 //Middleware
@@ -52,6 +53,9 @@ app.use("/api/fixtures",fixtureRouter);
 
 //ranks
 app.use("/api/ranks",rankRouter);
+
+//configs
+app.use("/api/configs",configRouter);
 
 
 

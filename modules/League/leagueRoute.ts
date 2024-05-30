@@ -1,11 +1,12 @@
 import express from "express"
 import { createLeague, deleteLeague, getLeagueById, getLeagues, updateLeague } from "./leagueController";
+import { authAdminToken } from "../../middleware/authToken";
 const router = express.Router();
 
 router.get('/', getLeagues);
 router.get("/:id", getLeagueById);
-router.post("/", createLeague);
-router.put("/:id", updateLeague);
-router.delete("/:id", deleteLeague);
+router.post("/", authAdminToken,createLeague);
+router.put("/:id", authAdminToken,updateLeague);
+router.delete("/:id",authAdminToken, deleteLeague);
 
 export default router
