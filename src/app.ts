@@ -12,8 +12,6 @@ import rankRouter from "../modules/Rank/rankRoute";
 import configRouter from "../modules/Config/configRoute";
 import mongoose from 'mongoose';
 
-//Middleware
-// import { authToken } from './middleware/authToken';
 
 dotenv.config();
 const app = express();

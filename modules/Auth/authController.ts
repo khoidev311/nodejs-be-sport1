@@ -18,10 +18,10 @@ const authRegister = async (req: Request, res: Response) => {
           role: userRole?._id,
           password: hassedPasword,
         });
-        const accessToken = jwt.sign({username: username}, process.env.ACCESS_TOKEN_SECRET || "",{
+        const accessToken = jwt.sign({username: username}, process.env.ACCESS_TOKEN_SECRET || "khoidev311",{
           expiresIn:"8h",
         });
-        const refreshToken = jwt.sign({username: username , password: password }, process.env.ACCESS_TOKEN_SECRET || "",{
+        const refreshToken = jwt.sign({username: username , password: password }, process.env.ACCESS_TOKEN_SECRET || "khoidev311",{
           expiresIn:"12h",
         });
         return res.status(200).json({
@@ -45,10 +45,10 @@ const authLogin = async (req: Request, res: Response) => {
   // Validate password
   const isAcceptPassword = await bcrypt.compare(password, user.password);
   if (isAcceptPassword) {
-    const accessToken = jwt.sign({username: username}, process.env.ACCESS_TOKEN_SECRET || "",{
+    const accessToken = jwt.sign({username: username}, process.env.ACCESS_TOKEN_SECRET || "khoidev311v",{
       expiresIn:"8h",
     });
-    const refreshToken = jwt.sign({username: username , password: password }, process.env.ACCESS_TOKEN_SECRET || "",{
+    const refreshToken = jwt.sign({username: username , password: password }, process.env.ACCESS_TOKEN_SECRET || "khoidev311",{
       expiresIn:"12h",
     });
     return res.status(200).json({
