@@ -6,14 +6,16 @@ import { queryBuilder } from "../../helper/commonHelper";
 
 const getScores = async (req: Request, res: Response) => {
   try {
-    const { filter , sort } = queryBuilder(req);
-    const scores = await ScoreModel.find({...filter}).sort(sort).populate({path:"host_team",model:"Team"}).populate({path:"guest_team",model:"Team"}).populate({path:"league", model:"League"});
+    const { filter , sort , page, perPage} = queryBuilder(req);
+    const scores = await ScoreModel.find({...filter}).sort(sort).populate({path:"host_team",model:"Team"}).populate({path:"guest_team",model:"Team"}).populate({path:"league", model:"League"}).skip((Number(perPage) * Number(page) - Number(perPage))).limit(Number(perPage));
     res.status(200).json({
-        data: scores,
-        meta: {
-          total: size(scores),
-        }
-    });;
+      data: scores,
+      meta: {
+        total: size(scores),
+        current: page,
+        pages: Math.ceil(size(scores) / Number(perPage))
+      }
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

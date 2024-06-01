@@ -6,12 +6,14 @@ import { queryBuilder } from "../../helper/commonHelper";
 
 const getConfigs = async (req: Request, res: Response) => {
   try {
-    const { filter , sort } = queryBuilder(req);
-    const configs = await ConfigModel.find({...filter}).sort(sort);
+    const { filter , sort , page, perPage} = queryBuilder(req);
+    const configs = await ConfigModel.find({...filter}).sort(sort).skip((Number(perPage) * Number(page) - Number(perPage))).limit(Number(perPage));
     res.status(200).json({
         data: configs,
         meta: {
           total: size(configs),
+          current: page,
+          pages: Math.ceil(size(configs) / Number(perPage))
         }
     });
   } catch (error: any) {

@@ -6,14 +6,16 @@ import { queryBuilder } from "../../helper/commonHelper";
 
 const getFixtures = async (req: Request, res: Response) => {
   try {
-    const { filter , sort } = queryBuilder(req);
-    const scores = await FixtureModel.find({...filter}).sort(sort).populate({path:"host_team",model:"Team"}).populate({path:"guest_team",model:"Team"}).populate({path:"league", model:"League"});
+    const { filter , sort , page, perPage} = queryBuilder(req);
+    const fixtures = await FixtureModel.find({...filter}).sort(sort).populate({path:"host_team",model:"Team"}).populate({path:"guest_team",model:"Team"}).populate({path:"league", model:"League"}).skip((Number(perPage) * Number(page) - Number(perPage))).limit(Number(perPage));
     res.status(200).json({
-        data: scores,
+        data: fixtures,
         meta: {
-          total: size(scores),
+          total: size(fixtures),
+          current: page,
+          pages: Math.ceil(size(fixtures) / Number(perPage))
         }
-    });;
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

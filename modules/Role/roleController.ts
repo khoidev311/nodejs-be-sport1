@@ -6,13 +6,15 @@ import { queryBuilder } from "../../helper/commonHelper";
 
 const getRoles = async (req: Request, res: Response) => {
   try {
-    const { filter , sort } = queryBuilder(req);
-    const roles = await RoleModel.find({...filter}).sort(sort);
+    const { filter , sort , page, perPage} = queryBuilder(req);
+    const roles = await RoleModel.find({...filter}).sort(sort).skip((Number(perPage) * Number(page) - Number(perPage))).limit(Number(perPage));
     res.status(200).json({
-        data: roles,
-        meta: {
-          total: size(roles),
-        }
+      data: roles,
+      meta: {
+        total: size(roles),
+        current: page,
+        pages: Math.ceil(size(roles) / Number(perPage))
+      }
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

@@ -9,13 +9,15 @@ import RoleModel from "../Role/roleModel";
 
 const getUsers = async (req: Request, res: Response) => {
   try {
-    const { filter , sort } = queryBuilder(req);
-    const users = await UserModel.find({...filter}).sort(sort).populate({path:"role",model:"Role"});
+    const { filter , sort , page, perPage} = queryBuilder(req);
+    const users = await UserModel.find({...filter}).sort(sort).populate({path:"role",model:"Role"}).skip((Number(perPage) * Number(page) - Number(perPage))).limit(Number(perPage));
     res.status(200).json({
-        data: users,
-        meta: {
-          total: size(users),
-        }
+      data: users,
+      meta: {
+        total: size(users),
+        current: page,
+        pages: Math.ceil(size(users) / Number(perPage))
+      }
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

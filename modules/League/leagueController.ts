@@ -6,12 +6,14 @@ import { size } from "lodash";
 
 const getLeagues = async (req: Request, res: Response) => {
   try {
-    const { filter , sort } = queryBuilder(req);
-    const leagues = await LeagueModel.find({...filter}).sort(sort);
+    const { filter , sort , page, perPage} = queryBuilder(req);
+    const leagues = await LeagueModel.find({...filter}).sort(sort).skip((Number(perPage) * Number(page) - Number(perPage))).limit(Number(perPage));
     res.status(200).json({
       data: leagues,
       meta: {
         total: size(leagues),
+        current: page,
+        pages: Math.ceil(size(leagues) / Number(perPage))
       }
     });
   } catch (error: any) {
