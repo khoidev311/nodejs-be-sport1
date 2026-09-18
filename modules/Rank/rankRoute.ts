@@ -1,13 +1,14 @@
-import express from "express"
-import { createRank, deleteRank, getRankById, getRankByLeagueId, getRanks, updateRank } from "./rankController";
+import express from "express";
+import { rankController, getRanksByLeagueId } from "./rankController";
 import { authAdminToken } from "../../middleware/authToken";
+
 const router = express.Router();
 
-router.get('/', getRanks);
-router.get("/:id", getRankById);
-router.get("/league/:id", getRankByLeagueId);
-router.post("/", authAdminToken,createRank);
-router.put("/:id", authAdminToken,updateRank);
-router.delete("/:id", authAdminToken,deleteRank);
+router.get("/", rankController.list);
+router.get("/league/:id", getRanksByLeagueId);
+router.get("/:id", rankController.getById);
+router.post("/", authAdminToken, rankController.create);
+router.put("/:id", authAdminToken, rankController.update);
+router.delete("/:id", authAdminToken, rankController.remove);
 
-export default router
+export default router;

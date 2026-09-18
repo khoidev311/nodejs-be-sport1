@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import env from "../config/env";
 import connectDB from "../helper/dbconnect";
+import { errorHandler, notFoundHandler } from "../helper/http";
 import userRouter from "../modules/User/userRoute";
 import authRouter from "../modules/Auth/authRoute";
 import roleRouter from "../modules/Role/roleRoute";
@@ -40,6 +41,9 @@ app.use("/api/scores", scoreRouter);
 app.use("/api/fixtures", fixtureRouter);
 app.use("/api/ranks", rankRouter);
 app.use("/api/configs", configRouter);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Only bind a port when run directly (local dev). On Vercel, api/index.ts
 // exports the app and the platform handles requests.

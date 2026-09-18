@@ -1,12 +1,13 @@
-import express from "express"
-import { createTeam, deleteTeam, getTeamById, getTeams, updateTeam } from "./teamController";
+import express from "express";
+import { teamController } from "./teamController";
 import { authAdminToken } from "../../middleware/authToken";
+
 const router = express.Router();
 
-router.get('/', getTeams);
-router.get("/:id", getTeamById);
-router.post("/",authAdminToken, createTeam);
-router.put("/:id",authAdminToken, updateTeam);
-router.delete("/:id",authAdminToken, deleteTeam);
+router.get("/", teamController.list);
+router.get("/:id", teamController.getById);
+router.post("/", authAdminToken, teamController.create);
+router.put("/:id", authAdminToken, teamController.update);
+router.delete("/:id", authAdminToken, teamController.remove);
 
-export default router
+export default router;

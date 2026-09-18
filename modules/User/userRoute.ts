@@ -1,12 +1,13 @@
 import express from "express";
-import { createUser, deleteUser, getUserById, getUsers, updateUser } from "./userController";
+import { userController } from "./userController";
 import { authAdminToken } from "../../middleware/authToken";
+
 const router = express.Router();
 
-router.get('/',authAdminToken, getUsers);
-router.get("/:id",authAdminToken, getUserById);
-router.post("/", authAdminToken, createUser);
-router.put("/:id",authAdminToken, updateUser);
-router.delete("/:id",authAdminToken, deleteUser);
+router.get("/", authAdminToken, userController.list);
+router.get("/:id", authAdminToken, userController.getById);
+router.post("/", authAdminToken, userController.create);
+router.put("/:id", authAdminToken, userController.update);
+router.delete("/:id", authAdminToken, userController.remove);
 
-export default router
+export default router;

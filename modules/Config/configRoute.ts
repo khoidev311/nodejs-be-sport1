@@ -1,13 +1,13 @@
-import express from "express"
-import { createConfig, deleteConfig, getConfigById, getConfigs, updateConfig } from "./configController";
+import express from "express";
+import { configController } from "./configController";
 import { authAdminToken } from "../../middleware/authToken";
 
 const router = express.Router();
 
-router.get('/', getConfigs);
-router.get("/:id", getConfigById);
-router.post("/", authAdminToken,createConfig);
-router.put("/:id", authAdminToken,updateConfig);
-router.delete("/:id", authAdminToken,deleteConfig);
+router.get("/", configController.list);
+router.get("/:id", configController.getById);
+router.post("/", authAdminToken, configController.create);
+router.put("/:id", authAdminToken, configController.update);
+router.delete("/:id", authAdminToken, configController.remove);
 
-export default router
+export default router;
