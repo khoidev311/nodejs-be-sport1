@@ -10,4 +10,8 @@
     "strict": true,
     "skipLibCheck": true
   },
+  "include": ["src", "api", "modules", "helper", "middleware", "config", "types"],
+  "ts-node": {
+    "files": true
+  }
 }
