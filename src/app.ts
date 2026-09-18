@@ -1,6 +1,7 @@
-import express, { Request, Response } from 'express';
-import dotenv from "dotenv";
-import cors from 'cors';
+import express, { NextFunction, Request, Response } from "express";
+import cors from "cors";
+import env from "../config/env";
+import connectDB from "../helper/dbconnect";
 import userRouter from "../modules/User/userRoute";
 import authRouter from "../modules/Auth/authRoute";
 import roleRouter from "../modules/Role/roleRoute";
@@ -10,69 +11,49 @@ import scoreRouter from "../modules/Score/scoreRoute";
 import fixtureRouter from "../modules/Fixture/fixtureRoute";
 import rankRouter from "../modules/Rank/rankRoute";
 import configRouter from "../modules/Config/configRoute";
-import mongoose from 'mongoose';
 
-
-dotenv.config();
 const app = express();
-const port = process.env.PORT || 3000;
-
-
 
 app.use(express.json());
-
 app.use(cors());
 
-app.use(express.static('uploads'))
-
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!');
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello World!");
 });
 
-//auth
+// Ensure the DB is connected before any /api handler runs (serverless-safe).
+app.use("/api", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error: any) {
+    res.status(503).json({ message: "Database unavailable", detail: error.message });
+  }
+});
+
 app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
+app.use("/api/roles", roleRouter);
+app.use("/api/teams", teamRouter);
+app.use("/api/leagues", leagueRouter);
+app.use("/api/scores", scoreRouter);
+app.use("/api/fixtures", fixtureRouter);
+app.use("/api/ranks", rankRouter);
+app.use("/api/configs", configRouter);
 
-//users
-app.use("/api/users",userRouter);
-
-//roles
-app.use("/api/roles",roleRouter);
-
-//teams
-app.use("/api/teams",teamRouter);
-
-//leagues
-app.use("/api/leagues",leagueRouter);
-
-//scores
-app.use("/api/scores",scoreRouter);
-
-//fixtures
-app.use("/api/fixtures",fixtureRouter);
-
-//ranks
-app.use("/api/ranks",rankRouter);
-
-//configs
-app.use("/api/configs",configRouter);
-
-
-
-
-
-
-
-
-
-
-
-mongoose.connect("mongodb+srv://khoidev311:8heCdSJRCFliwvfk@server1.a2yvgjo.mongodb.net/").then(()=> {
-  console.log("Connected to database!");
-  app.listen(port, () => {
-    return console.log(`Express is listening at http://localhost:${port}`);
-  });
-}).catch((err)=> {
-  console.log(err.stack);
-})
+// Only bind a port when run directly (local dev). On Vercel, api/index.ts
+// exports the app and the platform handles requests.
+if (require.main === module) {
+  connectDB()
+    .then(() => {
+      app.listen(env.port, () => {
+        console.log(`Express is listening at http://localhost:${env.port}`);
+      });
+    })
+    .catch((err) => {
+      console.error(err.stack);
+      process.exit(1);
+    });
+}
 
 export default app;
