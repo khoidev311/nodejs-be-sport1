@@ -13,7 +13,17 @@ const populate = [
 export const fixtureController = createCrudController(FixtureModel, {
   label: "Fixture",
   populate,
-  fields: ["host_team", "guest_team", "league", "start_time"],
+  fields: [
+    "host_team",
+    "guest_team",
+    "league",
+    "start_time",
+    "round",
+    "status",
+    "venue",
+    "home_score",
+    "away_score",
+  ],
 });
 
 export const getFixturesByLeagueId = asyncHandler(async (req: Request, res: Response) => {

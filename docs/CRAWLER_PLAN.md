@@ -1,5 +1,17 @@
 # Kế hoạch crawler dữ liệu từ bongda.com.vn
 
+> **Trạng thái (22/09/2026):** bước 1–3 đã xong — schema, `scripts/crawl/`, test offline
+> (11 test) và PoC crawl Ngoại hạng Anh: 380 trận / 20 đội / 50 kết quả / 20 dòng BXH
+> trong 38 s, chạy lại idempotent. Còn lại: bước 4 (GitHub Actions schedule) và 5 (API
+> filter theo `round`/`status`, docs cho RN).
+>
+> ```bash
+> npm run crawl -- leagues                              # 124 giải nguồn biết
+> npm run crawl -- league ngoai-hang-anh                # full 38 vòng
+> npm run crawl -- league ngoai-hang-anh --rounds current --dry-run
+> npm run crawl -- daily                                # 7 giải mặc định, vòng hiện tại ±1
+> ```
+
 Mục tiêu: đổ dữ liệu thật (giải đấu, đội bóng, lịch thi đấu, kết quả, bảng xếp hạng) vào
 MongoDB của Sport1 API, chạy lại được hằng ngày để cập nhật.
 

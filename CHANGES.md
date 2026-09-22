@@ -236,7 +236,19 @@ npm run lint && npm run typecheck && npm run build
 
 ---
 
-## 8. Chưa làm
+## 8. Crawler dữ liệu thật (22/09)
+
+- Models có thêm `source` + `external_id` (index unique partial), League `slug/country/
+season_external_id`, Team `short_name`, Fixture `round/status/venue/home_score/away_score`,
+  Rank `goals_for/goals_against/goal_diff`. Bỏ `unique` trên `Team.name`/`logo`,
+  `League.logo`. Client không thể set `source`/`external_id` qua API.
+- `scripts/crawl/` — nguồn `bongda.com.vn` (xem `docs/CRAWLER_PLAN.md`): `npm run crawl --
+league <slug> [--rounds all|current|5,6] [--dry-run]`, `npm run crawl -- daily`.
+- **Client RN:** Fixture giờ có tỉ số ngay trong document (`home_score`, `away_score`,
+  `status`); có thể bỏ gọi `/scores`. `GET /fixtures/league/:id?filter[status]=finished&sort=-start_time`
+  = kết quả mới nhất; `filter[status]=scheduled&sort=start_time` = lịch sắp tới.
+
+## 9. Chưa làm
 
 - **Express 5 / Mongoose 9** (major, có breaking change) — để PR riêng sau khi bản này chạy
   ổn trên production.

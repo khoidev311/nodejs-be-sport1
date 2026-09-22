@@ -3,5 +3,5 @@ import { createCrudController } from "../../helper/crud";
 
 export const leagueController = createCrudController(LeagueModel, {
   label: "League",
-  fields: ["name", "logo"],
+  fields: ["name", "logo", "slug", "country"],
 });

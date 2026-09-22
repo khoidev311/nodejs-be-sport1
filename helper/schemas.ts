@@ -29,10 +29,20 @@ export const roleUpdate = roleCreate.partial();
 export const configCreate = z.object({ key: z.string().trim().min(1).max(100), value: z.string().max(5000) });
 export const configUpdate = configCreate.partial();
 
-export const leagueCreate = z.object({ name, logo: url });
+export const leagueCreate = z.object({
+  name,
+  logo: url,
+  slug: z.string().trim().max(100).optional(),
+  country: z.string().trim().max(100).optional(),
+});
 export const leagueUpdate = leagueCreate.partial();
 
-export const teamCreate = z.object({ name, logo: url, league: objectId.optional() });
+export const teamCreate = z.object({
+  name,
+  logo: url,
+  league: objectId.optional(),
+  short_name: z.string().trim().max(50).optional(),
+});
 export const teamUpdate = teamCreate.partial();
 
 export const fixtureCreate = z.object({
@@ -40,6 +50,11 @@ export const fixtureCreate = z.object({
   guest_team: objectId,
   league: objectId,
   start_time: z.coerce.date().optional(),
+  round: z.coerce.number().int().min(0).optional(),
+  status: z.enum(["scheduled", "live", "finished", "postponed"]).optional(),
+  venue: z.string().trim().max(200).optional(),
+  home_score: z.coerce.number().int().min(0).optional(),
+  away_score: z.coerce.number().int().min(0).optional(),
 });
 export const fixtureUpdate = fixtureCreate.partial();
 
@@ -68,6 +83,9 @@ export const rankCreate = z.object({
     .max(20)
     .optional(),
   total_match: nonNegInt.optional(),
+  goals_for: nonNegInt.optional(),
+  goals_against: nonNegInt.optional(),
+  goal_diff: z.coerce.number().int().optional(),
 });
 export const rankUpdate = rankCreate.partial();
 

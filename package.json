@@ -13,13 +13,15 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "seed": "tsx scripts/seed.ts",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "crawl": "tsx scripts/crawl/cli.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^4.22.3",
