@@ -21,19 +21,36 @@ const clampInt = (value: unknown, fallback: number, min: number, max: number) =>
   return Math.min(Math.max(n, min), max);
 };
 
-// Parses ?filter[field]=text&sort=-name&page=1&per_page=20 into query pieces.
-// Filters are case-insensitive "contains" matches with regex metachars escaped.
+const OBJECT_ID = /^[0-9a-f]{24}$/i;
+const INTEGER = /^-?\d+$/;
+
+// A filter value that looks like an ObjectId or an integer is matched
+// exactly (regexes cannot be cast to those field types); anything else is a
+// case-insensitive "contains" match with regex metachars escaped.
+const filterValue = (value: string): RegExp | string | number => {
+  if (OBJECT_ID.test(value)) return value;
+  if (INTEGER.test(value)) return Number(value);
+  return new RegExp(escapeRegex(value), "i");
+};
+
+// Parses ?filter[field]=text&sort=-name&page=1&per_page=20&from=&to= into
+// query pieces. from/to are ISO dates applied to `start_time` by callers
+// that have one (fixtures).
 const queryBuilder = (request: Request) => {
   const filterParams = toRecord(request.query?.filter);
-  const filter: Record<string, RegExp> = {};
+  const filter: Record<string, RegExp | string | number> = {};
   for (const [field, value] of Object.entries(filterParams)) {
-    filter[field] = new RegExp(escapeRegex(value), "i");
+    filter[field] = filterValue(value);
   }
   const sortParam = request.query?.sort;
   const sort = typeof sortParam === "string" && sortParam ? sortParam : undefined;
+  const from = request.query?.from ? new Date(String(request.query.from)) : undefined;
+  const to = request.query?.to ? new Date(String(request.query.to)) : undefined;
   return {
     filter,
     sort,
+    from: from && !Number.isNaN(from.getTime()) ? from : undefined,
+    to: to && !Number.isNaN(to.getTime()) ? to : undefined,
     page: clampInt(request.query?.page, 1, 1, Number.MAX_SAFE_INTEGER),
     perPage: clampInt(request.query?.per_page, DEFAULT_PER_PAGE, 1, MAX_PER_PAGE),
   };
