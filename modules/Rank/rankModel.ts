@@ -17,5 +17,8 @@ const rankSchema = new Schema(
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } },
 );
 
+rankSchema.index({ league: 1, rank: 1 });
+rankSchema.index({ league: 1, team: 1 }, { unique: true });
+
 const RankModel = model("Rank", rankSchema);
 export default RankModel;

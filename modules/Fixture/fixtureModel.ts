@@ -11,5 +11,7 @@ const fixtureSchema = new Schema(
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } },
 );
 
+fixtureSchema.index({ league: 1, start_time: 1 });
+
 const FixtureModel = model("Fixture", fixtureSchema);
 export default FixtureModel;

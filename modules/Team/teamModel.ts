@@ -17,5 +17,7 @@ const teamSchema = new Schema({
   },
 });
 
+teamSchema.index({ league: 1 });
+
 const TeamModel = model("Team", teamSchema);
 export default TeamModel;

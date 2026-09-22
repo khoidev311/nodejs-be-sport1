@@ -10,5 +10,7 @@ const scoreSchema = new Schema(
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } },
 );
 
+scoreSchema.index({ league: 1 });
+
 const ScoreModel = model("Score", scoreSchema);
 export default ScoreModel;
