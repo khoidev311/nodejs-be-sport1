@@ -1,0 +1,48 @@
+name: Crawl
+
+on:
+  schedule:
+    # 21:00 UTC = 04:00 Vietnam time, after the last European kick-offs.
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+    inputs:
+      league:
+        description: "League slug or id (empty = daily set)"
+        required: false
+        default: ""
+      rounds:
+        description: "all | current | comma-separated round numbers"
+        required: false
+        default: "current"
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # One crawl at a time; a manual run waits for the scheduled one.
+    concurrency:
+      group: crawl
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Crawl
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          DAILY_LEAGUES: ${{ vars.DAILY_LEAGUES }}
+          CRAWL_NO_CACHE: "1"
+        run: |
+          if [ -n "${{ github.event.inputs.league }}" ]; then
+            npm run crawl -- league "${{ github.event.inputs.league }}" --rounds "${{ github.event.inputs.rounds || 'current' }}"
+          else
+            npm run crawl -- daily
+          fi

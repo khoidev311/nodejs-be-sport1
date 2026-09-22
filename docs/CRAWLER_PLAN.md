@@ -2,8 +2,11 @@
 
 > **Trạng thái (22/09/2026):** bước 1–3 đã xong — schema, `scripts/crawl/`, test offline
 > (11 test) và PoC crawl Ngoại hạng Anh: 380 trận / 20 đội / 50 kết quả / 20 dòng BXH
-> trong 38 s, chạy lại idempotent. Còn lại: bước 4 (GitHub Actions schedule) và 5 (API
-> filter theo `round`/`status`, docs cho RN).
+> trong 38 s, chạy lại idempotent. Bước 4 xong: `.github/workflows/crawl.yml` chạy
+> `crawl daily` 04:00 giờ VN (cần secret `MONGODB_URI`, `ACCESS_TOKEN_SECRET`,
+> `REFRESH_TOKEN_SECRET`; tuỳ chọn variable `DAILY_LEAGUES`). Đã dry-run 7 giải trên site
+> thật (LaLiga, Serie A, Bundesliga, Ligue 1, UCL 36 đội, V-League) — parser dùng chung.
+> Còn lại: bước 5 (docs cho RN).
 >
 > ```bash
 > npm run crawl -- leagues                              # 124 giải nguồn biết
@@ -39,16 +42,16 @@ Trang HTML render server-side (jQuery + select2), **phần dữ liệu thể tha
 `fetch()` tới API nội bộ** trả JSON dạng `{ "status": "success", "html": "<fragment>" }`.
 Vì vậy crawler **không cần headless browser** — chỉ cần gọi API + parse HTML fragment.
 
-| Dữ liệu                   | Nguồn                                                                                                         | Ghi chú                                       |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Danh sách giải            | HTML trang chủ: `href="/giai-dau/{id}/summary/{slug}"` (151 giải)                                             | Có sẵn logo trong biến JS `templates`         |
-| Danh sách đội của giải    | HTML `/giai-dau/{id}/teams/{slug}` (server-rendered)                                                          | Parse trong vùng nội dung, bỏ nav             |
-| Thông tin đội             | HTML `/doi-bong/{id}/overview/{slug}`                                                                         | Chỉ cần khi thiếu logo                        |
-| Vòng đấu                  | HTML `/giai-dau/{id}/fixtures/{slug}` → `<select id="league-round"><option value="{roundId}">Vòng N</option>` | roundId **không** = số vòng (PL: Vòng 1 = 38) |
-| Lịch thi đấu theo vòng    | `GET /api/fixtures/group-by-round?round_type={roundId}&tournament_id={id}`                                    | 10 trận / vòng, đúng 100% với PL              |
-| Kết quả theo vòng         | `GET /api/fixtures/group-by-round?round_type={roundId}&tournament_id={id}&sort=desc&isResult=True`            | Cùng fragment, có tỉ số + nhãn `KT`           |
-| Bảng xếp hạng             | `GET /api/league-table/home?tournament_id={id}&is_detail=True&team_ids=`                                      | 20 dòng `.leaderboard-item#team_{id}`         |
-| Lịch / kết quả trong ngày | `GET /api/fixtures/daily-schedule`, `GET /api/fixtures/daily-result`                                          | Dùng cho cron hằng ngày                       |
+| Dữ liệu                   | Nguồn                                                                                                         | Ghi chú                                                                                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Danh sách giải            | HTML trang chủ: `href="/giai-dau/{id}/summary/{slug}"` (151 giải)                                             | Có sẵn logo trong biến JS `templates`                                                                                                                                    |
+| Danh sách đội của giải    | HTML `/giai-dau/{id}/teams/{slug}` (server-rendered)                                                          | Parse trong vùng nội dung, bỏ nav                                                                                                                                        |
+| Thông tin đội             | HTML `/doi-bong/{id}/overview/{slug}`                                                                         | Chỉ cần khi thiếu logo                                                                                                                                                   |
+| Vòng đấu                  | HTML `/giai-dau/{id}/fixtures/{slug}` → `<select id="league-round"><option value="{roundId}">Vòng N</option>` | roundId **không** = số vòng (PL: Vòng 1 = 38). Thuộc tính `selected` **không đáng tin** (Ligue 1 trỏ vòng 1 giữa mùa) → crawler binary-search vòng đầu tiên chưa đá xong |
+| Lịch thi đấu theo vòng    | `GET /api/fixtures/group-by-round?round_type={roundId}&tournament_id={id}`                                    | 10 trận / vòng, đúng 100% với PL                                                                                                                                         |
+| Kết quả theo vòng         | `GET /api/fixtures/group-by-round?round_type={roundId}&tournament_id={id}&sort=desc&isResult=True`            | Cùng fragment, có tỉ số + nhãn `KT`                                                                                                                                      |
+| Bảng xếp hạng             | `GET /api/league-table/home?tournament_id={id}&is_detail=True&team_ids=`                                      | 20 dòng `.leaderboard-item#team_{id}`                                                                                                                                    |
+| Lịch / kết quả trong ngày | `GET /api/fixtures/daily-schedule`, `GET /api/fixtures/daily-result`                                          | Dùng cho cron hằng ngày                                                                                                                                                  |
 
 Site có **2 loại id**: `template id` (ổn định qua các mùa, trong biến JS `templates`:
 PL = 8, LaLiga = 29, Serie A = 14, Bundesliga = 13, Ligue 1 = 12, V-League = 91, UCL = 4)

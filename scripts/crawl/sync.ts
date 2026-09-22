@@ -31,6 +31,7 @@ const sanity = {
 
 export class Syncer {
   private teamIds = new Map<string, Types.ObjectId>();
+  private matchCache = new Map<string, MatchInfo[]>();
   private readonly log: (msg: string) => void;
 
   constructor(
@@ -135,17 +136,41 @@ export class Syncer {
     );
   }
 
-  private pickRounds(rounds: RoundInfo[]): RoundInfo[] {
+  private async fetchMatches(info: LeagueInfo, round: RoundInfo): Promise<MatchInfo[]> {
+    const cached = this.matchCache.get(round.id);
+    if (cached) return cached;
+    const matches = await this.source.matches(info, round);
+    this.matchCache.set(round.id, matches);
+    return matches;
+  }
+
+  private async allFinished(info: LeagueInfo, round: RoundInfo): Promise<boolean> {
+    const matches = await this.fetchMatches(info, round);
+    return matches.length > 0 && matches.every((m) => m.status === "finished");
+  }
+
+  // "current": the first round that is not fully played, plus its
+  // neighbours, so a daily run refreshes late results and upcoming
+  // fixtures. The site's `selected` option is unreliable (Ligue 1 pointed
+  // at round 1 mid-season), so binary-search on the data instead: rounds
+  // are chronological, so "all finished" is monotonic.
+  private async currentRounds(info: LeagueInfo, rounds: RoundInfo[]): Promise<RoundInfo[]> {
+    let lo = 0;
+    let hi = rounds.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (await this.allFinished(info, rounds[mid])) lo = mid + 1;
+      else hi = mid;
+    }
+    const idx = Math.min(lo, rounds.length - 1);
+    return rounds.slice(Math.max(0, idx - 1), idx + 2);
+  }
+
+  private async pickRounds(info: LeagueInfo, rounds: RoundInfo[]): Promise<RoundInfo[]> {
     const sel = this.opts.rounds;
     if (sel === "all") return rounds;
     if (Array.isArray(sel)) return rounds.filter((r) => sel.includes(r.number));
-    // "current": the selected round plus its neighbours, so late results and
-    // upcoming fixtures are both refreshed by a daily run.
-    const idx = Math.max(
-      rounds.findIndex((r) => r.current),
-      rounds.findIndex((r) => r.number === 1),
-    );
-    return rounds.slice(Math.max(0, idx - 1), idx + 2);
+    return this.currentRounds(info, rounds);
   }
 
   async syncLeague(info: LeagueInfo): Promise<SyncReport> {
@@ -172,9 +197,9 @@ export class Syncer {
     }
     this.log(`[${info.name}] standings: ${standings.length} rows`);
 
-    const rounds = this.pickRounds(await this.source.rounds(info));
+    const rounds = await this.pickRounds(info, await this.source.rounds(info));
     for (const round of rounds) {
-      const matches = await this.source.matches(info, round);
+      const matches = await this.fetchMatches(info, round);
       if (!sanity.matchesPerRound(matches.length)) {
         report.warnings.push(`round ${round.number}: unexpected match count ${matches.length}, skipped`);
         continue;

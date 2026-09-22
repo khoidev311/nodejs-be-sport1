@@ -112,11 +112,14 @@ describe("crawl sync", () => {
     expect(await ScoreModel.findOne({ external_id: "5795465" })).toMatchObject({ score: "2-0" });
   });
 
-  it("picks the current round and its neighbours for --rounds current", async () => {
+  it("finds the current round from the data (first round not fully played) for --rounds current", async () => {
     const source = new FakeSource();
     const report = await new Syncer(source, { rounds: "current" }).syncLeague(league);
+    // round 5 finished, round 6 upcoming -> 6 is current; 5 and 7 are its neighbours
     expect(report.rounds).toEqual([5, 6]); // round 7 returns 0 matches -> skipped with a warning
     expect(report.warnings).toEqual(["round 7: unexpected match count 0, skipped"]);
+    // matches for a round are fetched once even though the search looked at them
+    expect(source.calls.matches).toBeLessThanOrEqual(3);
   });
 
   it("does not write in dry-run mode", async () => {
