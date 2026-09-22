@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import UserModel from "../User/userModel";
 import RoleModel from "../Role/roleModel";

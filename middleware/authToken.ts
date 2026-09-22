@@ -22,14 +22,13 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-const requireRole =
-  (slug: string) => (req: Request, res: Response, next: NextFunction) => {
-    const role = req.user?.role as { slug?: string } | undefined;
-    if (role?.slug !== slug) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-    next();
-  };
+const requireRole = (slug: string) => (req: Request, res: Response, next: NextFunction) => {
+  const role = req.user?.role as { slug?: string } | undefined;
+  if (role?.slug !== slug) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
+};
 
 // Kept for existing routes: authenticate + admin role in one middleware chain.
 const authAdminToken = [authenticate, requireRole("admin")];

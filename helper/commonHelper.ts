@@ -49,7 +49,10 @@ interface PaginateOptions {
 // Runs a paginated find + countDocuments and returns the list envelope.
 const paginate = async <T>(model: Model<T>, filter: FilterQuery<T>, opts: PaginateOptions) => {
   const { page, perPage, sort, populate = [] } = opts;
-  let query = model.find(filter).skip((page - 1) * perPage).limit(perPage);
+  let query = model
+    .find(filter)
+    .skip((page - 1) * perPage)
+    .limit(perPage);
   if (sort) query = query.sort(sort);
   for (const p of populate) query = query.populate(p);
   const [data, total] = await Promise.all([query.exec(), model.countDocuments(filter)]);

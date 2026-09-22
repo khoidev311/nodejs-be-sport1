@@ -18,6 +18,10 @@ export const scoreController = createCrudController(ScoreModel, {
 
 export const getScoresByLeagueId = asyncHandler(async (req: Request, res: Response) => {
   const { filter, sort, page, perPage } = queryBuilder(req);
-  const result = await paginate(ScoreModel, { ...filter, league: req.params.id }, { page, perPage, sort, populate });
+  const result = await paginate(
+    ScoreModel,
+    { ...filter, league: req.params.id },
+    { page, perPage, sort, populate },
+  );
   res.status(200).json(result);
 });

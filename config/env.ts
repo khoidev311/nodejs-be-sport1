@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import type { SignOptions } from "jsonwebtoken";
 
 dotenv.config();
 
@@ -15,8 +16,9 @@ const env = {
   mongodbUri: required("MONGODB_URI"),
   accessTokenSecret: required("ACCESS_TOKEN_SECRET"),
   refreshTokenSecret: required("REFRESH_TOKEN_SECRET"),
-  accessTokenTtl: process.env.ACCESS_TOKEN_TTL || "8h",
-  refreshTokenTtl: process.env.REFRESH_TOKEN_TTL || "7d",
+  // ms-style durations, e.g. "8h", "7d"
+  accessTokenTtl: (process.env.ACCESS_TOKEN_TTL || "8h") as SignOptions["expiresIn"],
+  refreshTokenTtl: (process.env.REFRESH_TOKEN_TTL || "7d") as SignOptions["expiresIn"],
 };
 
 export default env;

@@ -2,7 +2,10 @@ import { NextFunction, Request, RequestHandler, Response } from "express";
 import mongoose from "mongoose";
 
 export class HttpError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
     super(message);
   }
 }
@@ -34,7 +37,12 @@ export const errorHandler = (err: unknown, req: Request, res: Response, _next: N
   if (err instanceof SyntaxError && "body" in err) {
     return res.status(400).json({ message: "Malformed JSON body" });
   }
-  const anyErr = err as { code?: number; keyValue?: Record<string, unknown>; message?: string; stack?: string };
+  const anyErr = err as {
+    code?: number;
+    keyValue?: Record<string, unknown>;
+    message?: string;
+    stack?: string;
+  };
   if (anyErr?.code === 11000) {
     const field = Object.keys(anyErr.keyValue || {}).join(", ");
     return res.status(409).json({ message: `Duplicate value for ${field || "unique field"}` });

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import UserModel from "./userModel";
 import RoleModel from "../Role/roleModel";
 import { createCrudController } from "../../helper/crud";

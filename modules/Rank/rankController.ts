@@ -12,7 +12,19 @@ const populate = [
 export const rankController = createCrudController(RankModel, {
   label: "Rank",
   populate,
-  fields: ["win", "lost", "draw", "efficiency", "goal", "rank", "point", "history_match", "total_match", "team", "league"],
+  fields: [
+    "win",
+    "lost",
+    "draw",
+    "efficiency",
+    "goal",
+    "rank",
+    "point",
+    "history_match",
+    "total_match",
+    "team",
+    "league",
+  ],
 });
 
 // A league table: ranks of one league ordered by position.
