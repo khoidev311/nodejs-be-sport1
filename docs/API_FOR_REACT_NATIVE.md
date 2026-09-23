@@ -220,14 +220,22 @@ Tất cả endpoint dưới đây **không cần token**. Dữ liệu được c
 | GET    | `/fixtures?filter[host_team]=<teamId>` / `filter[guest_team]=`                   | Trận của đội (gọi 2 lần hoặc lọc client)                                                                                |
 | GET    | `/fixtures/:id`                                                                  | Chi tiết trận (populated `host_team`, `guest_team`, `league`)                                                           |
 | GET    | `/configs`                                                                       | Key/value cấu hình (banner, thông báo…)                                                                                 |
+| GET    | `/articles?per_page=20`                                                          | **Tin tức** mới nhất (mặc định sort `-published_at`)                                                                    |
+| GET    | `/articles?filter[category_slug]=tin-chuyen-nhuong`                              | Tin theo chuyên mục (`tin-chuyen-nhuong`, `v-league`, `ngoai-hang-anh`…)                                                |
+| GET    | `/articles?filter[tags]=Arsenal` / `from=`/`to=`                                 | Tin theo tag / theo khoảng `published_at`                                                                               |
+| GET    | `/articles/:id`                                                                  | Chi tiết bài (metadata)                                                                                                 |
 
 `/scores` vẫn tồn tại nhưng **deprecated** — mọi thứ đã có trong Fixture.
+
+**Tin tức chỉ có metadata** (tiêu đề, sapo, ảnh đại diện, chuyên mục, tag, link gốc) — không có
+nội dung bài, vì bài viết của bongda.com.vn có bản quyền. Màn chi tiết hiển thị sapo + nút
+"Đọc tiếp" mở `url` (WebView / in-app browser) và ghi rõ nguồn. Tin mới được crawl mỗi 6 giờ.
 
 ### `src/api/services/publicApi.ts`
 
 ```ts
 import { request } from "../client";
-import type { Fixture, League, ListResponse, Rank, Team } from "../types";
+import type { Article, Fixture, League, ListResponse, Rank, Team } from "../types";
 
 export const publicApi = {
   leagues: () =>
@@ -274,6 +282,13 @@ export const publicApi = {
   },
 
   fixture: (id: string) => request<Fixture>(`/fixtures/${id}`, { auth: false }),
+
+  articles: (page = 1, category?: string) =>
+    request<ListResponse<Article>>("/articles", {
+      auth: false,
+      query: { page, per_page: 20, ...(category && { filter: { category_slug: category } }) },
+    }),
+  article: (id: string) => request<Article>(`/articles/${id}`, { auth: false }),
 };
 ```
 
@@ -316,6 +331,19 @@ export const useResults = (leagueId: string) =>
 export interface ListResponse<T> {
   data: T[];
   meta: { total: number; current: number; per_page: number; pages: number };
+}
+
+export interface Article {
+  _id: string;
+  title: string;
+  summary: string; // sapo
+  thumbnail: string; // URL ảnh trên media.bongda.com.vn
+  url: string; // bài gốc — mở để đọc toàn văn
+  published_at: string; // ISO
+  category?: string; // "Tin Chuyển Nhượng"
+  category_slug?: string; // "tin-chuyen-nhuong"
+  tags: string[];
+  author?: string;
 }
 
 export interface League {

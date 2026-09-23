@@ -1,6 +1,6 @@
 # Sport1 — Mô hình dữ liệu
 
-8 collection trong MongoDB, định nghĩa ở `modules/*/xxxModel.ts`. Sơ đồ dưới dạng
+9 collection trong MongoDB, định nghĩa ở `modules/*/xxxModel.ts`. Sơ đồ dưới dạng
 Mermaid — GitHub, VS Code (Markdown Preview Mermaid) và mermaid.live đều render được.
 
 ```mermaid
@@ -20,6 +20,21 @@ erDiagram
         ObjectId role FK
         date     created_at
         date     updated_at
+    }
+
+    ARTICLE {
+        ObjectId _id PK
+        string   title
+        string   summary       "sapo"
+        string   thumbnail     "URL ảnh gốc, không rehost"
+        string   url           "link bài gốc"
+        date     published_at
+        string   category
+        string   category_slug
+        string[] tags
+        string   author
+        string   source        "bongda"
+        string   external_id   "id bài trên nguồn (…-d848423.html)"
     }
 
     LEAGUE {
@@ -112,19 +127,22 @@ erDiagram
 
 ## Index
 
-| Collection | Index                | Loại           | Mục đích                        |
-| ---------- | -------------------- | -------------- | ------------------------------- |
-| users      | `username`           | unique         | đăng nhập                       |
-| roles      | `name`               | unique         |                                 |
-| roles      | `slug`               | unique, sparse | tìm role `admin` / `user`       |
-| leagues    | `name`, `logo`       | unique         |                                 |
-| teams      | `name`, `logo`       | unique         |                                 |
-| teams      | `league`             |                | đội của một giải                |
-| fixtures   | `league, start_time` | compound       | `GET /fixtures/league/:id` sort |
-| scores     | `league`             |                | `GET /scores/league/:id`        |
-| ranks      | `league, rank`       | compound       | bảng xếp hạng theo thứ tự       |
-| ranks      | `league, team`       | **unique**     | 1 đội chỉ có 1 dòng / giải      |
-| configs    | `key`                | unique         |                                 |
+| Collection | Index                         | Loại            | Mục đích                        |
+| ---------- | ----------------------------- | --------------- | ------------------------------- |
+| users      | `username`                    | unique          | đăng nhập                       |
+| roles      | `name`                        | unique          |                                 |
+| roles      | `slug`                        | unique, sparse  | tìm role `admin` / `user`       |
+| leagues    | `name`, `logo`                | unique          |                                 |
+| teams      | `name`, `logo`                | unique          |                                 |
+| teams      | `league`                      |                 | đội của một giải                |
+| fixtures   | `league, start_time`          | compound        | `GET /fixtures/league/:id` sort |
+| scores     | `league`                      |                 | `GET /scores/league/:id`        |
+| ranks      | `league, rank`                | compound        | bảng xếp hạng theo thứ tự       |
+| ranks      | `league, team`                | **unique**      | 1 đội chỉ có 1 dòng / giải      |
+| configs    | `key`                         | unique          |                                 |
+| articles   | `source, external_id`         | unique, partial | upsert idempotent từ crawler    |
+| articles   | `published_at`                | desc            | tin mới nhất                    |
+| articles   | `category_slug, published_at` | compound        | tin theo chuyên mục             |
 
 ## Ràng buộc & quy ước
 
