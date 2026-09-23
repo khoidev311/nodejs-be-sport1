@@ -17,6 +17,8 @@ export const listQuery = z
       .optional(),
     page: z.coerce.number().int().min(1).optional(),
     per_page: z.coerce.number().int().min(1).max(100).optional(),
+    from: z.string().datetime({ offset: true }).or(z.string().date()).optional(),
+    to: z.string().datetime({ offset: true }).or(z.string().date()).optional(),
   })
   .passthrough();
 

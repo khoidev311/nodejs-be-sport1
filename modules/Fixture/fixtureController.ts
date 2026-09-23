@@ -10,6 +10,22 @@ const populate = [
   { path: "league", model: "League" },
 ];
 
+// Fixtures support ?from=&to= (ISO date/datetime) on start_time in addition
+// to the generic filter/sort/pagination.
+const timeRange = (from?: Date, to?: Date) => {
+  if (!from && !to) return {};
+  return { start_time: { ...(from && { $gte: from }), ...(to && { $lte: to }) } };
+};
+
+export const listFixtures = asyncHandler(async (req: Request, res: Response) => {
+  const { filter, sort, page, perPage, from, to } = queryBuilder(req);
+  res
+    .status(200)
+    .json(
+      await paginate(FixtureModel, { ...filter, ...timeRange(from, to) }, { page, perPage, sort, populate }),
+    );
+});
+
 export const fixtureController = createCrudController(FixtureModel, {
   label: "Fixture",
   populate,
@@ -27,10 +43,10 @@ export const fixtureController = createCrudController(FixtureModel, {
 });
 
 export const getFixturesByLeagueId = asyncHandler(async (req: Request, res: Response) => {
-  const { filter, sort, page, perPage } = queryBuilder(req);
+  const { filter, sort, page, perPage, from, to } = queryBuilder(req);
   const result = await paginate(
     FixtureModel,
-    { ...filter, league: req.params.id },
+    { ...filter, ...timeRange(from, to), league: req.params.id },
     { page, perPage, sort: sort ?? "start_time", populate },
   );
   res.status(200).json(result);

@@ -4,6 +4,8 @@ on:
   schedule:
     # 21:00 UTC = 04:00 Vietnam time, after the last European kick-offs.
     - cron: "0 21 * * *"
+    # Every 6 hours: news articles only (the sitemap covers ~2 days).
+    - cron: "30 */6 * * *"
   workflow_dispatch:
     inputs:
       league:
@@ -33,7 +35,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Crawl
+      - name: Crawl leagues
+        if: github.event.schedule != '30 */6 * * *'
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
@@ -46,3 +49,13 @@ jobs:
           else
             npm run crawl -- daily
           fi
+
+      - name: Crawl articles
+        # Run even if the league crawl reported warnings.
+        if: success() || failure()
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          CRAWL_NO_CACHE: "1"
+        run: npm run crawl -- articles

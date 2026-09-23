@@ -12,6 +12,7 @@ import scoreRouter from "../modules/Score/scoreRoute";
 import fixtureRouter from "../modules/Fixture/fixtureRoute";
 import rankRouter from "../modules/Rank/rankRoute";
 import configRouter from "../modules/Config/configRoute";
+import articleRouter from "../modules/Article/articleRoute";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/scores", scoreRouter);
 app.use("/api/fixtures", fixtureRouter);
 app.use("/api/ranks", rankRouter);
 app.use("/api/configs", configRouter);
+app.use("/api/articles", articleRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

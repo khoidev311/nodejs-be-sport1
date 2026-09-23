@@ -57,3 +57,33 @@ export interface Source {
   matches(league: LeagueInfo, round: RoundInfo): Promise<MatchInfo[]>;
   standings(league: LeagueInfo): Promise<StandingInfo[]>;
 }
+
+// News articles. We keep metadata only (headline, summary, thumbnail URL,
+// link back to the source) — never the article body or rehosted images;
+// see docs/CRAWLER_PLAN.md §2.
+export interface ArticleRef {
+  external_id: string;
+  url: string;
+  title?: string;
+  published_at?: Date;
+}
+
+export interface ArticleInfo {
+  external_id: string;
+  url: string;
+  title: string;
+  summary: string;
+  thumbnail: string;
+  published_at: Date;
+  category?: string;
+  category_slug?: string;
+  tags: string[];
+  author?: string;
+}
+
+export interface ArticleSource {
+  readonly name: "bongda";
+  recentArticles(): Promise<ArticleRef[]>;
+  categoryArticles(category: string, page: number): Promise<ArticleRef[]>;
+  article(ref: ArticleRef): Promise<ArticleInfo | null>;
+}

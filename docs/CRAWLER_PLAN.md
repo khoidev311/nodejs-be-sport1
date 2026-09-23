@@ -132,8 +132,9 @@ hiện tại của app RN.
 
 - bongda.com.vn là cơ quan báo chí; dữ liệu tỉ số/lịch thi đấu là **sự kiện công khai**
   (không có bản quyền trên dữ kiện), nhưng HTML/bài viết/ảnh là nội dung có bản quyền.
-  Crawler **chỉ lấy dữ kiện thể thao**, không lấy bài viết, không rehost ảnh nếu dùng
-  production (xem mục 4.3).
+  Crawler **chỉ lấy dữ kiện thể thao**, không lấy nội dung bài viết, không rehost ảnh nếu
+  dùng production (xem mục 4.3). Tin tức (`crawl articles`) chỉ lưu **metadata** — tiêu đề,
+  sapo, URL ảnh, chuyên mục, tag, link về bài gốc — như một trang tổng hợp tin.
 - Rate limit **≤ 1 request/giây**, `User-Agent` tự nhận diện (`Sport1Crawler/1.0
 (+contact email)`), cache theo ngày, chạy lúc ít tải (03:00–05:00 giờ VN).
 - Dùng cho **staging / phát triển app**. Nếu lên production thương mại, cân nhắc nguồn
@@ -272,3 +273,17 @@ Tổng ≈ 3 ngày. Bước 2–3 có thể làm ngay trên fragment đã tải 
 | Trận hoãn / đổi giờ                      | Upsert theo `external_id` nên tự cập nhật `start_time`; status `postponed`   |
 | Tên đội tiếng Việt cho CLB VN (V-League) | Dùng `external_id` làm khoá; tên chỉ để hiển thị                             |
 | Vấn đề bản quyền khi lên production      | Chỉ lấy dữ kiện; thay bằng nguồn có giấy phép qua cùng interface             |
+
+---
+
+## Phụ lục: Tin tức (`npm run crawl -- articles`)
+
+- **Phát hiện bài mới:** `/news-sitemap.xml` (~250 bài, ~2 ngày gần nhất). Sitemap theo ngày
+  (`sitemap-article-day-*.xml`) đã ngừng cập nhật từ 2025-10, không dùng.
+- **Backfill:** `/<chuyên-mục>?page=N` — 25 bài/trang trong `ul.news-list li.card-horizontal`
+  (JSON-LD `ItemList` chỉ có 10 bài, dùng làm dự phòng).
+  `npm run crawl -- articles --category tin-chuyen-nhuong --pages 5`
+- **Chi tiết:** mỗi bài 1 request, chỉ đọc `<head>`: `og:*`, `article:published_time`,
+  `news_keywords`, JSON-LD `NewsArticle` (tác giả) + `BreadcrumbList` (chuyên mục).
+- Bài đã có trong DB thì bỏ qua (`--refresh` để lấy lại). `--limit N` giới hạn số bài/lần.
+- GitHub Actions: chạy mỗi 6 giờ (`30 */6 * * *`) và sau crawl giải đấu lúc 04:00.

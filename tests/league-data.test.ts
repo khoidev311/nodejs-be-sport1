@@ -69,3 +69,44 @@ describe("fixtures / scores / ranks by league", () => {
     expect(badHist.status).toBe(400);
   });
 });
+
+describe("fixture filters", () => {
+  let h: Record<string, string>;
+  let L1: string, T1: string, T2: string;
+  beforeEach(async () => {
+    h = auth(await seedAdmin());
+    L1 = (await api.post("/api/leagues").set(h).send({ name: "L1", logo: "l1.png" })).body._id;
+    T1 = (await api.post("/api/teams").set(h).send({ name: "T1", logo: "t1.png", league: L1 })).body._id;
+    T2 = (await api.post("/api/teams").set(h).send({ name: "T2", logo: "t2.png", league: L1 })).body._id;
+    for (const [round, day, status] of [
+      [1, "2026-09-01", "finished"],
+      [2, "2026-09-10", "finished"],
+      [3, "2026-09-20", "scheduled"],
+    ] as const) {
+      await api
+        .post("/api/fixtures")
+        .set(h)
+        .send({ host_team: T1, guest_team: T2, league: L1, round, status, start_time: `${day}T15:00:00Z` });
+    }
+  });
+
+  it("filters by numeric round, ObjectId league and string status", async () => {
+    const byRound = await api.get("/api/fixtures?filter[round]=2");
+    expect(byRound.status).toBe(200);
+    expect(byRound.body.data.map((f: { round: number }) => f.round)).toEqual([2]);
+
+    const byLeague = await api.get(`/api/fixtures?filter[league]=${L1}&filter[status]=finished`);
+    expect(byLeague.body.meta.total).toBe(2);
+
+    const byTeam = await api.get(`/api/fixtures?filter[host_team]=${T1}`);
+    expect(byTeam.body.meta.total).toBe(3);
+  });
+
+  it("filters by date range with from/to", async () => {
+    const week = await api.get(`/api/fixtures/league/${L1}?from=2026-09-05&to=2026-09-15T23:59:59Z`);
+    expect(week.body.data.map((f: { round: number }) => f.round)).toEqual([2]);
+    const upcoming = await api.get("/api/fixtures?from=2026-09-15&sort=start_time");
+    expect(upcoming.body.meta.total).toBe(1);
+    expect((await api.get("/api/fixtures?from=not-a-date")).status).toBe(400);
+  });
+});

@@ -6,6 +6,9 @@
  *   npm run crawl -- league ngoai-hang-anh --rounds current
  *   npm run crawl -- league 36781 --rounds 5,6 --dry-run
  *   npm run crawl -- daily                          # current rounds + standings for DAILY_LEAGUES
+ *   npm run crawl -- articles                       # new articles from the news sitemap (~last 2 days)
+ *   npm run crawl -- articles --category tin-chuyen-nhuong --pages 5   # backfill a category
+ *   npm run crawl -- articles --limit 10 --dry-run [--refresh]
  *
  * Env: MONGODB_URI (+ the usual secrets, config/env.ts requires them),
  *      DAILY_LEAGUES=ngoai-hang-anh,laliga,serie-a,bundesliga,ligue-1,champions-league,v-league
@@ -16,6 +19,7 @@ import connectDB from "../../helper/dbconnect";
 import { Client } from "./client";
 import { BongdaSource, BASE_URL } from "./sources/bongda";
 import { Syncer, type SyncOptions } from "./sync";
+import { ArticleSyncer } from "./articles";
 import type { LeagueInfo } from "./types";
 
 const DEFAULT_DAILY = "ngoai-hang-anh,laliga,serie-a,bundesliga,ligue-1,champions-league,v-league";
@@ -63,9 +67,30 @@ const main = async () => {
     return;
   }
 
+  if (command === "articles") {
+    const num = (f: string | true | undefined) => (typeof f === "string" ? Number(f) : undefined);
+    if (!dryRun) await connectDB();
+    try {
+      const report = await new ArticleSyncer(source, {
+        category: typeof flags.category === "string" ? flags.category : undefined,
+        pages: num(flags.pages),
+        limit: num(flags.limit),
+        refresh: flags.refresh === true,
+        dryRun,
+        log,
+      }).sync();
+      console.log(JSON.stringify(report));
+      if (report.warnings.length) process.exitCode = 1;
+    } finally {
+      if (!dryRun) await mongoose.disconnect();
+    }
+    return;
+  }
+
   if (command !== "league" && command !== "daily") {
     console.error(
-      "usage: crawl leagues | league <slug|id> [--rounds all|current|1,2] [--dry-run] | daily [--dry-run]",
+      "usage: crawl leagues | league <slug|id> [--rounds all|current|1,2] [--dry-run] | daily [--dry-run]\n" +
+        "       crawl articles [--category <slug> --pages N] [--limit N] [--refresh] [--dry-run]",
     );
     process.exitCode = 2;
     return;
