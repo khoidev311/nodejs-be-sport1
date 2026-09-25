@@ -1,4 +1,7 @@
+import type { AnyBulkWriteOperation } from "mongoose";
 import ArticleModel from "../../modules/Article/articleModel";
+import TeamModel from "../../modules/Team/teamModel";
+import { TeamMatcher } from "./teamMatcher";
 import type { ArticleRef, ArticleSource } from "./types";
 
 export interface ArticleSyncOptions {
@@ -15,6 +18,7 @@ export interface ArticleSyncReport {
   discovered: number;
   skipped: number; // already stored
   saved: number;
+  tagged: number; // saved articles linked to at least one team
   failed: number;
   errors: string[]; // per-article failures, informational
   warnings: string[]; // systemic problems; the CLI exits non-zero on these
@@ -48,6 +52,7 @@ export class ArticleSyncer {
       discovered: 0,
       skipped: 0,
       saved: 0,
+      tagged: 0,
       failed: 0,
       errors: [],
       warnings: [],
@@ -76,6 +81,9 @@ export class ArticleSyncer {
       `[articles] ${refs.length} discovered, ${report.skipped} already stored, fetching ${todo.length}`,
     );
 
+    // Team names/aliases change rarely: one query per run, not per article.
+    const matcher = !this.opts.dryRun && todo.length > 0 ? await TeamMatcher.load() : null;
+
     for (const ref of todo) {
       try {
         const info = await this.source.article(ref);
@@ -84,11 +92,13 @@ export class ArticleSyncer {
           report.errors.push(`unparseable or missing: ${ref.url}`);
           continue;
         }
+        const teams = matcher?.match(info) ?? [];
+        if (teams.length) report.tagged++;
         if (!this.opts.dryRun) {
           const { external_id, ...fields } = info;
           await ArticleModel.updateOne(
             { source: this.source.name, external_id },
-            { $set: fields },
+            { $set: { ...fields, teams } },
             { upsert: true, runValidators: true, setDefaultsOnInsert: true },
           );
         }
@@ -105,3 +115,48 @@ export class ArticleSyncer {
     return report;
   }
 }
+
+export interface BackfillReport {
+  articles: number;
+  tagged: number;
+  marked: number; // articles given notified_at so the notifier skips them
+  per_team: Record<string, number>;
+}
+
+// Re-links every stored article to teams and marks the ones never notified
+// as notified. Run once before turning push on, and again after changing
+// aliases; it never sends anything.
+export const backfillArticleTeams = async (opts: { dryRun?: boolean } = {}): Promise<BackfillReport> => {
+  const matcher = await TeamMatcher.load();
+  const names = new Map(
+    (await TeamModel.find({}, { name: 1 }).lean()).map((t) => [t._id.toString(), t.name] as const),
+  );
+  const report: BackfillReport = { articles: 0, tagged: 0, marked: 0, per_team: {} };
+  const now = new Date();
+  const ops: AnyBulkWriteOperation[] = [];
+  const flush = async () => {
+    const batch = ops.splice(0);
+    if (batch.length && !opts.dryRun) await ArticleModel.bulkWrite(batch, { ordered: false });
+  };
+
+  const cursor = ArticleModel.find({}, { title: 1, tags: 1, notified_at: 1 }).lean().cursor();
+  for await (const a of cursor) {
+    report.articles++;
+    const teams = matcher.match(a);
+    if (teams.length) report.tagged++;
+    for (const id of teams) {
+      const name = names.get(id.toString()) ?? id.toString();
+      report.per_team[name] = (report.per_team[name] ?? 0) + 1;
+    }
+    const $set: Record<string, unknown> = { teams };
+    if (!a.notified_at) {
+      $set.notified_at = now;
+      report.marked++;
+    }
+    ops.push({ updateOne: { filter: { _id: a._id }, update: { $set } } });
+    if (ops.length >= 500) await flush();
+  }
+  await flush();
+  report.per_team = Object.fromEntries(Object.entries(report.per_team).sort((x, y) => y[1] - x[1]));
+  return report;
+};

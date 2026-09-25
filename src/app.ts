@@ -13,6 +13,7 @@ import fixtureRouter from "../modules/Fixture/fixtureRoute";
 import rankRouter from "../modules/Rank/rankRoute";
 import configRouter from "../modules/Config/configRoute";
 import articleRouter from "../modules/Article/articleRoute";
+import meRouter from "../modules/Me/meRoute";
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/fixtures", fixtureRouter);
 app.use("/api/ranks", rankRouter);
 app.use("/api/configs", configRouter);
 app.use("/api/articles", articleRouter);
+app.use("/api/me", meRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

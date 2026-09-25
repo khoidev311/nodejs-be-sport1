@@ -44,6 +44,7 @@ export const teamCreate = z.object({
   logo: url,
   league: objectId.optional(),
   short_name: z.string().trim().max(50).optional(),
+  aliases: z.array(z.string().trim().min(1).max(50)).max(20).optional(),
 });
 export const teamUpdate = teamCreate.partial();
 
@@ -106,3 +107,13 @@ export const refreshBody = z.object({ refresh_token: z.string().min(1) });
 
 export const userCreate = z.object({ username, password, fullname: name, email, role: objectId.optional() });
 export const userUpdate = userCreate.partial();
+
+export const favoriteTeamsBody = z.object({ teams: z.array(objectId).max(20) });
+export const pushTokenBody = z.object({
+  token: z
+    .string()
+    .trim()
+    .regex(/^Expo(nent)?PushToken\[[^\]]+\]$/, "must be an Expo push token"),
+  platform: z.enum(["ios", "android"]).optional(),
+});
+export const pushTokenDeleteBody = pushTokenBody.pick({ token: true });
