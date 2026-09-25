@@ -9,17 +9,21 @@
  *   npm run crawl -- articles                       # new articles from the news sitemap (~last 2 days)
  *   npm run crawl -- articles --category tin-chuyen-nhuong --pages 5   # backfill a category
  *   npm run crawl -- articles --limit 10 --dry-run [--refresh]
+ *   npm run crawl -- article-teams [--dry-run]       # re-link all articles to teams, mark them notified
+ *   npm run crawl -- notify [--dry-run] [--window-hours 24]   # push new team news to followers
  *
  * Env: MONGODB_URI (+ the usual secrets, config/env.ts requires them),
  *      DAILY_LEAGUES=ngoai-hang-anh,laliga,serie-a,bundesliga,ligue-1,champions-league,v-league
  *      CRAWL_NO_CACHE=1 to bypass the on-disk response cache.
+ *      EXPO_ACCESS_TOKEN (optional) when Expo push "enhanced security" is on.
  */
 import mongoose from "mongoose";
 import connectDB from "../../helper/dbconnect";
 import { Client } from "./client";
 import { BongdaSource, BASE_URL } from "./sources/bongda";
 import { Syncer, type SyncOptions } from "./sync";
-import { ArticleSyncer } from "./articles";
+import { ArticleSyncer, backfillArticleTeams } from "./articles";
+import { TeamNewsNotifier, expoPushSender } from "./notify";
 import type { LeagueInfo } from "./types";
 
 const DEFAULT_DAILY = "ngoai-hang-anh,laliga,serie-a,bundesliga,ligue-1,champions-league,v-league";
@@ -87,10 +91,32 @@ const main = async () => {
     return;
   }
 
+  // Both need the DB even with --dry-run (they only skip the writes/sends).
+  if (command === "article-teams" || command === "notify") {
+    await connectDB();
+    try {
+      const report =
+        command === "article-teams"
+          ? await backfillArticleTeams({ dryRun })
+          : await new TeamNewsNotifier(expoPushSender(process.env.EXPO_ACCESS_TOKEN), {
+              windowHours:
+                typeof flags["window-hours"] === "string" ? Number(flags["window-hours"]) : undefined,
+              dryRun,
+              log,
+            }).run();
+      console.log(JSON.stringify(report, null, command === "article-teams" ? 2 : undefined));
+      if ("warnings" in report && report.warnings.length) process.exitCode = 1;
+    } finally {
+      await mongoose.disconnect();
+    }
+    return;
+  }
+
   if (command !== "league" && command !== "daily") {
     console.error(
       "usage: crawl leagues | league <slug|id> [--rounds all|current|1,2] [--dry-run] | daily [--dry-run]\n" +
-        "       crawl articles [--category <slug> --pages N] [--limit N] [--refresh] [--dry-run]",
+        "       crawl articles [--category <slug> --pages N] [--limit N] [--refresh] [--dry-run]\n" +
+        "       crawl article-teams [--dry-run] | notify [--dry-run] [--window-hours N]",
     );
     process.exitCode = 2;
     return;

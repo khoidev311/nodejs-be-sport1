@@ -1,6 +1,7 @@
 # Sport1 API — Hướng dẫn tích hợp React Native (bản 2026-09)
 
-Tài liệu cho app `football-infomation` (Expo, expo-router, React Query 5, zustand + MMKV).
+Tài liệu cho app `football-infomation` (Expo, expo-router, React Query 5, zustand, `expo-sqlite/kv-store`).
+**Auth, đội yêu thích, push thông báo** → xem [RN_AUTH_AND_PUSH.md](RN_AUTH_AND_PUSH.md) (hướng dẫn implement từng bước).
 Thay thế bản cũ. Mọi mô tả dưới đây đối chiếu trực tiếp với code trên branch `stg`
 (PR #3) và **đã có dữ liệu thật** của 7 giải trong DB.
 
@@ -178,25 +179,19 @@ export async function request<T>(
 - Validation register: `username` 3–50 ký tự `[a-zA-Z0-9_.-]`, `password` ≥ 6, `email` hợp lệ. Trùng username → **422**.
 - Sai tài khoản/mật khẩu → **401 `Invalid credentials`** (không phân biệt user không tồn tại).
 - Không có luồng "quên mật khẩu".
+- Token lưu bằng `expo-sqlite/kv-store` (`src/store/authStorage.ts` trong app — đã có, đọc đồng bộ).
+- Session state (khách / đã login), màn login/register, logout (gỡ push token trước khi xoá token):
+  **[RN_AUTH_AND_PUSH.md](RN_AUTH_AND_PUSH.md) mục 1**.
 
-### `src/store/authStorage.ts` (MMKV)
+### Endpoint của user đã login (Bearer)
 
-```ts
-import { MMKV } from "react-native-mmkv";
+| Method     | Path                 | Ghi chú                                               |
+| ---------- | -------------------- | ----------------------------------------------------- |
+| GET / PUT  | `/me/favorite-teams` | PUT `{ teams: string[] }` (≤ 20, ghi đè)              |
+| GET        | `/me/feed`           | Tin của các đội yêu thích, phân trang như `/articles` |
+| POST / DEL | `/me/push-tokens`    | `{ token: "ExponentPushToken[…]", platform? }` → 204  |
 
-const kv = new MMKV({ id: "auth" });
-type Tokens = { access_token: string; refresh_token: string };
-
-export const authStorage = {
-  getAccessToken: () => kv.getString("access_token") ?? null,
-  getRefreshToken: () => kv.getString("refresh_token") ?? null,
-  setTokens: (t: Tokens) => {
-    kv.set("access_token", t.access_token);
-    kv.set("refresh_token", t.refresh_token);
-  },
-  clear: () => kv.clearAll(),
-};
-```
+Chi tiết: [RN_AUTH_AND_PUSH.md](RN_AUTH_AND_PUSH.md) mục 2–3.
 
 ---
 
@@ -206,24 +201,25 @@ Tất cả endpoint dưới đây **không cần token**. Dữ liệu được c
 
 ### Endpoint
 
-| Method | Path                                                                             | Dùng cho                                                                                                                |
-| ------ | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/leagues`                                                                       | Danh sách giải (7 giải: `ngoai-hang-anh`, `laliga`, `serie-a`, `bundesliga`, `ligue-1`, `champions-league`, `v-league`) |
-| GET    | `/leagues/:id`                                                                   | Chi tiết giải                                                                                                           |
-| GET    | `/teams?filter[league]=<leagueId>&sort=name&per_page=40`                         | Đội của một giải                                                                                                        |
-| GET    | `/teams/:id`                                                                     | Chi tiết đội (kèm `league` populated)                                                                                   |
-| GET    | `/ranks/league/:leagueId?per_page=40`                                            | **Bảng xếp hạng** (mặc định sort theo `rank`)                                                                           |
-| GET    | `/fixtures/league/:leagueId?filter[status]=finished&sort=-start_time`            | **Kết quả** mới nhất                                                                                                    |
-| GET    | `/fixtures/league/:leagueId?filter[status]=scheduled&sort=start_time`            | **Lịch** sắp tới                                                                                                        |
-| GET    | `/fixtures/league/:leagueId?filter[round]=6&sort=start_time&per_page=20`         | Trận theo vòng                                                                                                          |
-| GET    | `/fixtures?from=2026-10-10&to=2026-10-10T23:59:59Z&sort=start_time&per_page=100` | **Trận trong ngày**, mọi giải                                                                                           |
-| GET    | `/fixtures?filter[host_team]=<teamId>` / `filter[guest_team]=`                   | Trận của đội (gọi 2 lần hoặc lọc client)                                                                                |
-| GET    | `/fixtures/:id`                                                                  | Chi tiết trận (populated `host_team`, `guest_team`, `league`)                                                           |
-| GET    | `/configs`                                                                       | Key/value cấu hình (banner, thông báo…)                                                                                 |
-| GET    | `/articles?per_page=20`                                                          | **Tin tức** mới nhất (mặc định sort `-published_at`)                                                                    |
-| GET    | `/articles?filter[category_slug]=tin-chuyen-nhuong`                              | Tin theo chuyên mục (`tin-chuyen-nhuong`, `v-league`, `ngoai-hang-anh`…)                                                |
-| GET    | `/articles?filter[tags]=Arsenal` / `from=`/`to=`                                 | Tin theo tag / theo khoảng `published_at`                                                                               |
-| GET    | `/articles/:id`                                                                  | Chi tiết bài (metadata)                                                                                                 |
+| Method | Path                                                                             | Dùng cho                                                                                                                        |
+| ------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/leagues`                                                                       | Danh sách giải (7 giải: `ngoai-hang-anh`, `laliga`, `serie-a`, `bundesliga`, `ligue-1`, `champions-league`, `v-league`)         |
+| GET    | `/leagues/:id`                                                                   | Chi tiết giải                                                                                                                   |
+| GET    | `/teams?filter[league]=<leagueId>&sort=name&per_page=40`                         | Đội của một giải                                                                                                                |
+| GET    | `/teams/:id`                                                                     | Chi tiết đội (kèm `league` populated)                                                                                           |
+| GET    | `/ranks/league/:leagueId?per_page=40`                                            | **Bảng xếp hạng** (mặc định sort theo `rank`)                                                                                   |
+| GET    | `/fixtures/league/:leagueId?filter[status]=finished&sort=-start_time`            | **Kết quả** mới nhất                                                                                                            |
+| GET    | `/fixtures/league/:leagueId?filter[status]=scheduled&sort=start_time`            | **Lịch** sắp tới                                                                                                                |
+| GET    | `/fixtures/league/:leagueId?filter[round]=6&sort=start_time&per_page=20`         | Trận theo vòng                                                                                                                  |
+| GET    | `/fixtures?from=2026-10-10&to=2026-10-10T23:59:59Z&sort=start_time&per_page=100` | **Trận trong ngày**, mọi giải                                                                                                   |
+| GET    | `/fixtures?filter[host_team]=<teamId>` / `filter[guest_team]=`                   | Trận của đội (gọi 2 lần hoặc lọc client)                                                                                        |
+| GET    | `/fixtures/:id`                                                                  | Chi tiết trận (populated `host_team`, `guest_team`, `league`)                                                                   |
+| GET    | `/configs`                                                                       | Key/value cấu hình (banner, thông báo…)                                                                                         |
+| GET    | `/articles?per_page=20`                                                          | **Tin tức** mới nhất (mặc định sort `-published_at`)                                                                            |
+| GET    | `/articles?filter[category_slug]=tin-chuyen-nhuong`                              | Tin theo chuyên mục (`tin-chuyen-nhuong`, `v-league`, `premier-league`…) — chi tiết: [NEWS_INTEGRATION.md](NEWS_INTEGRATION.md) |
+| GET    | `/articles?filter[teams]=<teamId>`                                               | Tin của một đội (gắn tự động lúc crawl)                                                                                         |
+| GET    | `/articles?filter[tags]=Arsenal` / `from=`/`to=`                                 | Tin theo tag / theo khoảng `published_at`                                                                                       |
+| GET    | `/articles/:id`                                                                  | Chi tiết bài (metadata)                                                                                                         |
 
 `/scores` vẫn tồn tại nhưng **deprecated** — mọi thứ đã có trong Fixture.
 
@@ -344,6 +340,7 @@ export interface Article {
   category_slug?: string; // "tin-chuyen-nhuong"
   tags: string[];
   author?: string;
+  teams: string[]; // id các đội bài viết nói tới (có thể rỗng)
 }
 
 export interface League {
@@ -420,7 +417,7 @@ Cần token của user có `role.slug === "admin"`. Non-admin → 403.
 | Method              | Path              | Body (partial cho PUT)                                                                                                                                    |
 | ------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | POST/PUT/DELETE     | `/leagues[/:id]`  | `{ name, logo, slug?, country? }`                                                                                                                         |
-| POST/PUT/DELETE     | `/teams[/:id]`    | `{ name, logo, league?, short_name? }`                                                                                                                    |
+| POST/PUT/DELETE     | `/teams[/:id]`    | `{ name, logo, league?, short_name?, aliases? }`                                                                                                          |
 | POST/PUT/DELETE     | `/fixtures[/:id]` | `{ host_team, guest_team, league, start_time?, round?, status?, venue?, home_score?, away_score? }`                                                       |
 | POST/PUT/DELETE     | `/ranks[/:id]`    | `{ team, league, rank?, point?, win?, draw?, lost?, total_match?, goals_for?, goals_against?, goal_diff?, history_match? }` — 1 đội chỉ 1 dòng/giải (409) |
 | POST/PUT/DELETE     | `/configs[/:id]`  | `{ key, value }`                                                                                                                                          |
@@ -442,3 +439,4 @@ Lưu ý: dữ liệu crawl có `source: "bongda"` và sẽ **bị ghi đè** m�
 - [ ] Route theo `league.slug` thay vì hardcode id (id đổi khi tạo lại DB).
 - [ ] Màn "hôm nay": `publicApi.byDay(new Date())`.
 - [ ] Xoá mock data / adapter football-data.org.
+- [ ] Auth + đội yêu thích + push: checklist trong [RN_AUTH_AND_PUSH.md](RN_AUTH_AND_PUSH.md) mục 4.

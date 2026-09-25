@@ -9,6 +9,9 @@ const teamSchema = new Schema(
     // Primary (domestic) league. A team can still appear in fixtures of
     // other competitions; those reference it by _id.
     league: { type: Schema.ObjectId, ref: "League" },
+    // Extra names used to link news articles to this team (see
+    // scripts/crawl/teamMatcher.ts, which also has built-in defaults).
+    aliases: { type: [String], default: [] },
     ...sourceFields,
   },
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } },
